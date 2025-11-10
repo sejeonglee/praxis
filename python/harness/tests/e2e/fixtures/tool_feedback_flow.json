@@ -1,0 +1,11 @@
+{
+  "prototype": "../msa-ma-prototype/demo.py",
+  "steps": [
+    {"type": "think", "note": "plan multi-tool action"},
+    {"type": "tool_call", "tool": "filesystem", "args": {"path": "./README.md"}},
+    {"type": "tool_call", "tool": "search", "args": {"query": "mock telemetry"}},
+    {"type": "user_feedback", "payload": "please refine step 2"},
+    {"type": "tool_call", "tool": "filesystem", "args": {"path": "./docs/workspace.md"}},
+    {"type": "finalize", "result": "summarized instructions"}
+  ]
+}
