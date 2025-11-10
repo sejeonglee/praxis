@@ -5,7 +5,7 @@ This plan enumerates the steps to implement OBJECTIVE.md with strict TDD and con
 ## Phase 0 — Workspace and Scaffolding
 
 - Deliverables
-  - PNPM workspace root (packages under `/apps/*` and `/core/*`).
+  - PNPM workspace root (packages under `/apps/*` and `/sdk/*`).
   - Python project layout with `uv` (virtualenv, `pyproject.toml`).
   - Repo scripts: `scripts/test.unit.sh`, `scripts/test.e2e.mock.sh` (see TESTING.md).
 - Tests (RED→GREEN)
@@ -16,9 +16,9 @@ This plan enumerates the steps to implement OBJECTIVE.md with strict TDD and con
 ## Phase 1 — Canonical Contracts
 
 - Deliverables
-  - `/core/contracts/agent-io.schema.json` (Agent I/O envelope).
-  - `/core/contracts/types.ts` (TS types: Progress, Action, FinalAnswer, etc.).
-  - `/core/contracts/acp.openapi.yaml` (minimal ACP endpoints: `/stream`, `/invoke`, `/action`).
+  - `/sdk/contracts/agent-io.schema.json` (Agent I/O envelope).
+  - `/sdk/contracts/types.ts` (TS types: Progress, Action, FinalAnswer, etc.).
+  - `/sdk/contracts/acp.openapi.yaml` (minimal ACP endpoints: `/stream`, `/invoke`, `/action`).
 - Tests (RED→GREEN)
   - RED: Failing unit tests for JSON Schema validation (good/bad payloads), TS type compatibility, and OpenAPI presence.
   - GREEN: Schema validates; types compile; OpenAPI exists and lints.
@@ -39,7 +39,7 @@ This plan enumerates the steps to implement OBJECTIVE.md with strict TDD and con
 ## Phase 3 — Orchestrator Skeleton (State Graph)
 
 - Deliverables
-  - `/core/orchestrator`: Idle → Plan → (Act ↔ Observe)* → Verify → Replan → Finalize, with explicit `interrupt()` checkpoints.
+  - `/sdk/orchestrator`: Idle → Plan → (Act ↔ Observe)* → Verify → Replan → Finalize, with explicit `interrupt()` checkpoints.
   - In-memory session store; resumable state.
 - Tests (RED→GREEN)
   - RED: Unit tests for transitions and pause/resume on `mid_events`.
@@ -49,7 +49,7 @@ This plan enumerates the steps to implement OBJECTIVE.md with strict TDD and con
 ## Phase 4 — Minimal Skills Discovery and Progressive Disclosure
 
 - Deliverables
-  - `/core/skills/*/SKILL.md` (name/description only at boot; full load via `ReadFile`).
+  - `/sdk/skills/*/SKILL.md` (name/description only at boot; full load via `ReadFile`).
   - A catalog index loader with lazy `ReadFile` fetch.
 - Tests (RED→GREEN)
   - RED: Unit tests verify only name/desc loaded at boot; full SKILL is loaded on demand.
@@ -58,7 +58,7 @@ This plan enumerates the steps to implement OBJECTIVE.md with strict TDD and con
 ## Phase 5 — Sandbox Runner (`CodeExecute`)
 
 - Deliverables
-  - `/core/sandbox-runner` with a stubbed backend (e.g., E2B or local runner interface) honoring `net=off|on`, `timeout_ms`.
+  - `/sdk/sandbox-runner` with a stubbed backend (e.g., E2B or local runner interface) honoring `net=off|on`, `timeout_ms`.
   - Embedded MCP client interface stub (no bulk tool exposure to LLM).
 - Tests (RED→GREEN)
   - RED: Unit tests for timeout, net off, and artifact listing.
@@ -68,7 +68,7 @@ This plan enumerates the steps to implement OBJECTIVE.md with strict TDD and con
 ## Phase 6 — MCP Gateway (Lazy Binding)
 
 - Deliverables
-  - `/core/mcp-gateway`: server indexing at boot; on first use, fetch tool metadata; enforce `allowed-tools` + `secretsScope`.
+  - `/sdk/mcp-gateway`: server indexing at boot; on first use, fetch tool metadata; enforce `allowed-tools` + `secretsScope`.
 - Tests (RED→GREEN)
   - RED: Failing unit tests for allowlists and secrets scoping; no mass exposure of tools.
   - GREEN: Only allowed tools accessible; scope enforced.
@@ -76,7 +76,7 @@ This plan enumerates the steps to implement OBJECTIVE.md with strict TDD and con
 ## Phase 7 — TTC / Budget-Aware Reasoning
 
 - Deliverables
-  - `/core/cost/policies.yaml` + policy executor.
+  - `/sdk/cost/policies.yaml` + policy executor.
   - Hook into orchestrator for token/latency budget allocation.
 - Tests (RED→GREEN)
   - RED: Unit tests for token allocation strategy and early-exit conditions.
@@ -85,7 +85,7 @@ This plan enumerates the steps to implement OBJECTIVE.md with strict TDD and con
 ## Phase 8 — Verifier-First + MoA Hooks
 
 - Deliverables
-  - `/core/verifier`: PRM/rules/tests glue; optional critic loop.
+  - `/sdk/verifier`: PRM/rules/tests glue; optional critic loop.
   - Orchestrator gating: increase depth/samples only when uncertain.
 - Tests (RED→GREEN)
   - RED: Unit tests for gating behavior and “uncertainty → deeper reasoning”.
@@ -94,7 +94,7 @@ This plan enumerates the steps to implement OBJECTIVE.md with strict TDD and con
 ## Phase 9 — Memory Backends (Context Curation)
 
 - Deliverables
-  - `/core/memory` adapters (stubs) for GraphRAG/HippoRAG and Zep.
+  - `/sdk/memory` adapters (stubs) for GraphRAG/HippoRAG and Zep.
   - Externalize artifacts/logs; prompt injection uses summaries/graphs.
 - Tests (RED→GREEN)
   - RED: Unit tests for multi-hop retrieval and temporal ordering APIs.
@@ -103,7 +103,7 @@ This plan enumerates the steps to implement OBJECTIVE.md with strict TDD and con
 ## Phase 10 — Observability and Safety
 
 - Deliverables
-  - `/core/observability`: OpenTelemetry + OpenLLMetry instrumentation; span factories; safe attribute filters.
+  - `/sdk/observability`: OpenTelemetry + OpenLLMetry instrumentation; span factories; safe attribute filters.
 - Tests (RED→GREEN)
   - RED: Unit tests assert spans for prompts/tool calls/sandbox runs with tokens/cost/latency.
   - GREEN: Spans appear; secrets not leaked; sampling rules respected.

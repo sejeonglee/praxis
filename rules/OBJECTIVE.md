@@ -24,7 +24,7 @@
     /cli            # CLI adapter (SSE/WebSocket): Standalone application
     /web            # Web adapter (Next/React; SSE + WS): Frontend (requires /api)
     /api            # API Server adapter (LiteStar): Backend
-  /components
+  /sdk
     /contracts      # JSON Schemas / TS types / OpenAPI
     /orchestrator   # state graph (Plan/Act/Observe/Verify/Replan)
     /skills         # SKILL.md catalog (desc only at boot)
@@ -260,7 +260,7 @@ Idle → Plan → (Act ↔ Observe)* → Verify → Replan? → Finalize
 ## 5) TTC / Budget-Aware Reasoning (Policy)
 
 ```yaml
-# /components/cost/policies.yaml
+# /sdk/cost/policies.yaml
 ttc:
   max_tokens_total: 2000000
   per_step:
@@ -339,7 +339,7 @@ Proposers (k) → Aggregator → Verifier(PRM/tests) → (optional Critic loop) 
 ### 12.1 Type stubs (TypeScript)
 
 ```ts
-// /components/contracts/types.ts
+// /sdk/contracts/types.ts
 export type MidEventKind = 'human_feedback'|'env_update'|'timer'|'budget_alert';
 export interface StartInput { start_instruction: string; mid_events?: any[]; observations?: any[]; }
 export interface Progress { ts:string; stage:'plan'|'reason'|'act'|'observe'|'verify'|'replan'; note:string; budget_used?: any; confidence?: number; }
@@ -350,7 +350,7 @@ export interface FinalAnswer { text:string; evidence?:{uri:string;hash?:string}[
 ### 12.2 OpenAPI (minimal)
 
 ```yaml
-# /components/contracts/acp.openapi.yaml
+# /sdk/contracts/acp.openapi.yaml
 paths:
   /stream:
     get: { summary: SSE stream of CloudEvents }
@@ -363,7 +363,7 @@ paths:
 ### 12.3 Skill template
 
 ```md
-# /components/skills/<skill-name>/SKILL.md
+# /sdk/skills/<skill-name>/SKILL.md
 ---
 name: "web.research"
 description: "High-precision research with citations"
@@ -389,7 +389,7 @@ triggers:
 ### 12.4 Sandbox runner (Node + E2B, example)
 
 ```ts
-// /components/sandbox-runner/e2b.ts
+// /sdk/sandbox-runner/e2b.ts
 import { Sandbox } from '@e2b/code-interpreter'
 export async function runCode({ code, files=[], net='off', timeout=60000 }) {
   const sb = await Sandbox.create()
@@ -443,12 +443,12 @@ export const GET = async () => {
 
 ## 15) Quick Start (for Claude Code / OpenAI)
 
-1. Create `/components/contracts/agent-io.schema.json` and `/components/contracts/types.ts`.
-2. Add 3–5 starter Skills (`/components/skills/*/SKILL.md`) with only `name/description` at boot.
-3. Implement `/components/sandbox-runner` (`CodeExecute`) and embed an MCP client.
-4. Implement `/components/mcp-gateway` lazy discovery + allowlists/secrets scopes.
+1. Create `/sdk/contracts/agent-io.schema.json` and `/sdk/contracts/types.ts`.
+2. Add 3–5 starter Skills (`/sdk/skills/*/SKILL.md`) with only `name/description` at boot.
+3. Implement `/sdk/sandbox-runner` (`CodeExecute`) and embed an MCP client.
+4. Implement `/sdk/mcp-gateway` lazy discovery + allowlists/secrets scopes.
 5. Expose `/apps/web` SSE stream + a minimal Stream UI (progress/actions/final).
-6. Add TTC policies under `/components/cost/policies.yaml`.
+6. Add TTC policies under `/sdk/cost/policies.yaml`.
 7. Wire `/eval/are` and `/eval/swe-bench` to CI to track live performance.
 
 ---
