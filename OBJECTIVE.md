@@ -21,10 +21,10 @@
 ```
 /praxis
   /apps
-    /cli            # CLI adapter (SSE/WebSocket)
-    /web            # Web adapter (Next/React; SSE + WS)
-    /ide            # IDE adapter (VS Code/JetBrains)
-  /core
+    /cli            # CLI adapter (SSE/WebSocket): Standalone application
+    /web            # Web adapter (Next/React; SSE + WS): Frontend (requires /api)
+    /api            # API Server adapter (LiteStar): Backend
+  /components
     /contracts      # JSON Schemas / TS types / OpenAPI
     /orchestrator   # state graph (Plan/Act/Observe/Verify/Replan)
     /skills         # SKILL.md catalog (desc only at boot)
@@ -260,7 +260,7 @@ Idle → Plan → (Act ↔ Observe)* → Verify → Replan? → Finalize
 ## 5) TTC / Budget-Aware Reasoning (Policy)
 
 ```yaml
-# /core/cost/policies.yaml
+# /components/cost/policies.yaml
 ttc:
   max_tokens_total: 2000000
   per_step:
@@ -311,7 +311,7 @@ Proposers (k) → Aggregator → Verifier(PRM/tests) → (optional Critic loop) 
 
 ## 9) HIL & Client Adapters
 
-* **Web/IDE:** stream ACP via SSE/WS; map user actions to `cancel` / `truncate` / `inject`.
+* **Web/CLI:** stream ACP via SSE/WS; map user actions to `cancel` / `truncate` / `inject`.
 * **LangGraph:** implement explicit `interrupt()` checkpoints and resumable state.
 * **MQTT (optional):** use QoS1 + message/session expiry for offline resilience.
 
@@ -339,7 +339,7 @@ Proposers (k) → Aggregator → Verifier(PRM/tests) → (optional Critic loop) 
 ### 12.1 Type stubs (TypeScript)
 
 ```ts
-// /core/contracts/types.ts
+// /components/contracts/types.ts
 export type MidEventKind = 'human_feedback'|'env_update'|'timer'|'budget_alert';
 export interface StartInput { start_instruction: string; mid_events?: any[]; observations?: any[]; }
 export interface Progress { ts:string; stage:'plan'|'reason'|'act'|'observe'|'verify'|'replan'; note:string; budget_used?: any; confidence?: number; }
@@ -350,7 +350,7 @@ export interface FinalAnswer { text:string; evidence?:{uri:string;hash?:string}[
 ### 12.2 OpenAPI (minimal)
 
 ```yaml
-# /core/contracts/acp.openapi.yaml
+# /components/contracts/acp.openapi.yaml
 paths:
   /stream:
     get: { summary: SSE stream of CloudEvents }
@@ -363,7 +363,7 @@ paths:
 ### 12.3 Skill template
 
 ```md
-# /core/skills/<skill-name>/SKILL.md
+# /components/skills/<skill-name>/SKILL.md
 ---
 name: "web.research"
 description: "High-precision research with citations"
@@ -389,7 +389,7 @@ triggers:
 ### 12.4 Sandbox runner (Node + E2B, example)
 
 ```ts
-// /core/sandbox-runner/e2b.ts
+// /components/sandbox-runner/e2b.ts
 import { Sandbox } from '@e2b/code-interpreter'
 export async function runCode({ code, files=[], net='off', timeout=60000 }) {
   const sb = await Sandbox.create()
@@ -419,11 +419,15 @@ export const GET = async () => {
 
 ## 13) Deployment Profiles
 
-| Profile          | Runtime                        | Isolation/Security         | Typical Use                             |
-| ---------------- | ------------------------------ | -------------------------- | --------------------------------------- |
-| Local-Solo       | single node                    | process/container          | secure PoC / offline dev                |
-| Hybrid           | local orchestrator + cloud SBX | egress allowlist + secrets | private data + external tools           |
-| Cloud-Serverless | fully serverless (Firecracker) | function-level micro-VM    | scale-out concurrency, strict isolation |
+| Profile     | Runtime                              | Isolation/Security                  | Typical Use                                             |
+| ----------- | ------------------------------------ | ----------------------------------- | ------------------------------------------------------- |
+| Local-Solo  | single node, single process          | in-process or single container      | local CLI app, debugging sessions, evaluations          |
+| Local-Multi | single node, multi process (compose) | per-process/per-container isolation | API server on single host; inter-process comms via IPC/docker network |
+| K8s-Multi   | multi-node, multi process (K8s Pods) | pod-level policies, secrets/roles   | production API server; autoscaling and scale-out concurrency |
+
+- Local-Multi: components run as separate processes/containers via Docker Compose; communicate over the compose network.
+- K8s-Multi: components deploy as Pods/Deployments; communicate via ClusterIP/Service; enable autoscaling (HPA) for scale-out.
+- Local-Solo: optimized for simple CLI flows and local eval; minimal overhead.
 
 ---
 
@@ -439,12 +443,12 @@ export const GET = async () => {
 
 ## 15) Quick Start (for Claude Code / OpenAI)
 
-1. Create `/core/contracts/agent-io.schema.json` and `/core/contracts/types.ts`.
-2. Add 3–5 starter Skills (`/core/skills/*/SKILL.md`) with only `name/description` at boot.
-3. Implement `/core/sandbox-runner` (`CodeExecute`) and embed an MCP client.
-4. Implement `/core/mcp-gateway` lazy discovery + allowlists/secrets scopes.
+1. Create `/components/contracts/agent-io.schema.json` and `/components/contracts/types.ts`.
+2. Add 3–5 starter Skills (`/components/skills/*/SKILL.md`) with only `name/description` at boot.
+3. Implement `/components/sandbox-runner` (`CodeExecute`) and embed an MCP client.
+4. Implement `/components/mcp-gateway` lazy discovery + allowlists/secrets scopes.
 5. Expose `/apps/web` SSE stream + a minimal Stream UI (progress/actions/final).
-6. Add TTC policies under `/core/cost/policies.yaml`.
+6. Add TTC policies under `/components/cost/policies.yaml`.
 7. Wire `/eval/are` and `/eval/swe-bench` to CI to track live performance.
 
 ---
