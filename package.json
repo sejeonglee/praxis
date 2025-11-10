@@ -1,0 +1,18 @@
+{
+  "name": "praxis-monorepo",
+  "private": true,
+  "description": "Workspace + harness bootstrap for Praxis agents",
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "bootstrap": "pnpm install",
+    "lint": "pnpm -r lint",
+    "test:unit": "pnpm vitest --run"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.2",
+    "vitest": "^1.2.2"
+  }
+}
