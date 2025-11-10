@@ -1,0 +1,13 @@
+.git
+.gitignore
+**/__pycache__/
+*.pyc
+*.pyo
+.env*
+.DS_Store
+Thumbs.db
+node_modules/
+venv/
+.venv/
+coverage/
+infra/local/redis/data/

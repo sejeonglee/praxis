@@ -1,0 +1,204 @@
+openapi: 3.1.0
+info:
+  title: CLI Event-Driven Control Plane
+  version: 0.1.0
+  description: |
+    Local Litestar API that orchestrates deterministic mocks, monitors Redis Streams,
+    and exposes health plus transcript retrieval endpoints for the CLI e2e workflow.
+servers:
+  - url: http://localhost:8090
+    description: Local Litestar development server
+paths:
+  /health:
+    get:
+      summary: Health probe for CLI control plane
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+  /sessions:
+    post:
+      summary: Reset or initialize a CLI session
+      description: Clears Redis streams, registers deterministic scenario seeds, and returns session metadata.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionInitRequest'
+      responses:
+        '201':
+          description: Session initialized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionInitResponse'
+  /sessions/{session_id}/events:
+    get:
+      summary: Retrieve ordered event envelopes for a session
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 100
+      responses:
+        '200':
+          description: Events returned in publish order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    format: uuid
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventEnvelope'
+  /scenarios/reference/run:
+    post:
+      summary: Launch the reference e2e scenario via mocks
+      description: Triggers deterministic mocks to publish the expected event sequence; used by the regression script.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  format: uuid
+                instruction_override:
+                  type: string
+                  description: Optional alternate instruction text
+      responses:
+        '202':
+          description: Scenario started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  run_id:
+                    type: string
+                    format: uuid
+                  session_id:
+                    type: string
+                    format: uuid
+                  expected_events:
+                    type: integer
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        redis:
+          type: string
+          enum: [connected, disconnected]
+        mocks:
+          type: string
+          enum: [idle, running]
+    SessionInitRequest:
+      type: object
+      required: [session_id, start_instruction]
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        start_instruction:
+          type: string
+          minLength: 1
+        budget:
+          type: object
+          properties:
+            tokens:
+              type: integer
+              minimum: 0
+            wall_ms:
+              type: integer
+              minimum: 0
+        scenario_label:
+          type: string
+        mid_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/MidEvent'
+    SessionInitResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        queue_stream:
+          type: string
+        scenario_seed:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+    EventEnvelope:
+      type: object
+      required: [event_id, session_id, stage, ts, payload]
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        stage:
+          type: string
+          enum: [plan, reason, act, observe, verify, replan, final, mid_event]
+        ts:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum: [cli, mock_llm, mock_db, orchestrator, verifier]
+        payload:
+          type: object
+        metrics:
+          type: object
+          properties:
+            latency_ms:
+              type: integer
+              minimum: 0
+            tokens:
+              type: integer
+              minimum: 0
+            cost_usd:
+              type: number
+              minimum: 0
+    MidEvent:
+      type: object
+      required: [id, ts, kind]
+      properties:
+        id:
+          type: string
+          format: uuid
+        ts:
+          type: string
+          format: date-time
+        kind:
+          type: string
+          enum: [human_feedback, env_update, timer, budget_alert]
+        payload:
+          type: object
