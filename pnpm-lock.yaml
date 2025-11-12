@@ -9,34 +9,34 @@ importers:
   .:
     devDependencies:
       '@types/node':
-        specifier: ^20.11.17
+        specifier: ^20.19.24
         version: 20.19.24
       eslint:
-        specifier: ^8.57.0
+        specifier: ^8.57.1
         version: 8.57.1
       typescript:
-        specifier: ^5.4.2
+        specifier: ^5.9.3
         version: 5.9.3
       vitest:
-        specifier: ^1.2.2
+        specifier: ^1.6.1
         version: 1.6.1(@types/node@20.19.24)
 
   apps/example-app:
     devDependencies:
       typescript:
-        specifier: ^5.4.2
+        specifier: ^5.9.3
         version: 5.9.3
 
   sdk/example-sdk:
     devDependencies:
       '@types/node':
-        specifier: ^20.11.17
+        specifier: ^20.19.24
         version: 20.19.24
       typescript:
-        specifier: ^5.4.2
+        specifier: ^5.9.3
         version: 5.9.3
       vitest:
-        specifier: ^1.2.2
+        specifier: ^1.6.1
         version: 1.6.1(@types/node@20.19.24)
 
 packages:

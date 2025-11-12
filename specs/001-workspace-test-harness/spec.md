@@ -148,7 +148,7 @@ zero after placeholders are added (GREEN), with CI reflecting both states.
 
 ## Assumptions
 
-- Contributors have Node.js 20+ and Python 3.11+ installed; bootstrap scripts
+- Contributors have Node.js 24+ and Python 3.11+ installed; bootstrap scripts
   only validate versions, not install runtimes.
 - No production workloads are shipped in this feature—only scaffolding and test
   harness assets.

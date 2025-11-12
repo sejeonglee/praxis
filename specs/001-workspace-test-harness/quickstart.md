@@ -1,8 +1,8 @@
 # Quickstart: Workspace & Test Harness Bootstrap
 
 ## 1. Prerequisites
-- Node.js 20+, pnpm 9+
-- Python 3.11 + `uv` CLI
+- Node.js 24+, pnpm ^10.13.1
+- Python 3.11 + `uv` CLI (^0.7.22)
 - GitHub CLI/login optional for CI checks
 - `LLM_CLIENT` defaults to `mock` (no secrets required)
 

@@ -18,7 +18,7 @@ emitting telemetry and wiring CI. No product logic deploys in this feature.
 
 ## Technical Context
 
-**Language/Version**: Node.js 20 + TypeScript workspace, Python 3.11 via `uv`  
+**Language/Version**: Node.js 24 + TypeScript workspace, Python 3.11 via `uv`
 **Primary Dependencies**: `pnpm`, `typescript`, `vitest`, `eslint`, `pytest`,
 `anyio`, `opentelemetry-sdk`, `uv`  
 **Storage**: N/A (no databases; file system artifacts only)  
