@@ -19,4 +19,4 @@ def test_python_version_matches_pin() -> None:
     if not version_file.exists():
         pytest.skip(".python-version not pinned yet")
     pinned = version_file.read_text(encoding="utf-8").strip()
-    assert pinned.startswith("3.11"), "Python version pin must be 3.11.x"  # constitution requirement
+    assert pinned.startswith("3.14"), "Python version pin must be 3.14.x"  # constitution requirement

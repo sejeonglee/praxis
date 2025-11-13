@@ -220,7 +220,7 @@
 {
   "name": "CodeExecute",
   "args": {
-    "runtime": "python3.11|node20|bash",
+    "runtime": "python3.14|node20|bash",
     "code": "string",
     "files": [{"path":"string","content_base64":"string"}],
     "timeout_ms": 60000,

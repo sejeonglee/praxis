@@ -6,7 +6,7 @@ This repository hosts the Praxis agent platform. The initial scope of this branc
 
 Follow the detailed instructions in [`specs/001-workspace-test-harness/quickstart.md`](specs/001-workspace-test-harness/quickstart.md) to:
 
-1. Install prerequisites (Node.js 20 + pnpm 9, Python 3.11 + `uv`).
+1. Install prerequisites (Node.js 20 + pnpm 9, Python 3.14 + `uv`).
 2. Run `pnpm install` to register packages under `/apps/*` and `/sdk/*`.
 3. Create the Python environment with `uv sync -p python/harness`.
 4. Execute the validation scripts:

@@ -4,7 +4,7 @@ Auto-generated from all feature plans. Last updated: 2025-11-11
 
 ## Active Technologies
 
-- Node.js 20 + TypeScript workspace, Python 3.11 via `uv` + `pnpm`, `typescript`, `vitest`, `eslint`, `pytest`, (001-workspace-test-harness)
+- Node.js 20 + TypeScript workspace, Python 3.14 via `uv` + `pnpm`, `typescript`, `vitest`, `eslint`, `pytest`, (001-workspace-test-harness)
 
 ## Project Structure
 
@@ -19,11 +19,11 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 
 ## Code Style
 
-Node.js 20 + TypeScript workspace, Python 3.11 via `uv`: Follow standard conventions
+Node.js 20 + TypeScript workspace, Python 3.14 via `uv`: Follow standard conventions
 
 ## Recent Changes
 
-- 001-workspace-test-harness: Added Node.js 20 + TypeScript workspace, Python 3.11 via `uv` + `pnpm`, `typescript`, `vitest`, `eslint`, `pytest`,
+- 001-workspace-test-harness: Added Node.js 20 + TypeScript workspace, Python 3.14 via `uv` + `pnpm`, `typescript`, `vitest`, `eslint`, `pytest`,
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
