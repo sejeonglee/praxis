@@ -1,0 +1,194 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Praxis Agent Control Plane",
+    "version": "1.0.0",
+    "description": "Minimal control plane surface area for Praxis agents. The contract exposes streaming envelopes, ad-hoc invocation, and action fulfilment endpoints."
+  },
+  "jsonSchemaDialect": "http://json-schema.org/draft-07/schema#",
+  "servers": [
+    {
+      "url": "https://api.praxis.dev",
+      "description": "Production ACP base URL"
+    }
+  ],
+  "paths": {
+    "/stream": {
+      "get": {
+        "summary": "Subscribe to agent envelopes for a run",
+        "description": "Streams `AgentEnvelope` instances produced by the control plane for a particular run. The caller MUST provide an authenticated `runId` parameter.",
+        "operationId": "streamAgentEnvelopes",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "runId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Identifier of the agent run whose envelopes should be streamed."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-sent events containing agent envelopes.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "object",
+                  "required": ["event", "data"],
+                  "properties": {
+                    "event": {
+                      "type": "string",
+                      "enum": ["agent-envelope"]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AgentEnvelope"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found."
+          }
+        }
+      }
+    },
+    "/invoke": {
+      "post": {
+        "summary": "Start a new agent run",
+        "operationId": "invokeAgent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvokeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Invocation accepted and run initialised.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvokeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/action": {
+      "post": {
+        "summary": "Deliver a tool response for a pending action envelope",
+        "operationId": "submitActionResult",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionResult"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Action result ingested and acknowledged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status"],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["accepted"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AgentEnvelope": {
+        "$ref": "./agent-io.schema.json"
+      },
+      "JsonValue": {
+        "type": ["string", "number", "boolean", "object", "array", "null"],
+        "description": "JSON-compatible value used for action payloads and results."
+      },
+      "InvokeRequest": {
+        "type": "object",
+        "required": ["task"],
+        "additionalProperties": false,
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "High-level natural language instruction for the agent."
+          },
+          "context": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Optional contextual metadata forwarded to the agent runtime."
+          },
+          "stream": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether the caller expects streaming envelopes via `/stream`."
+          }
+        }
+      },
+      "InvokeResponse": {
+        "type": "object",
+        "required": ["runId", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "runId": {
+            "type": "string",
+            "description": "Identifier assigned to the new agent run."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "running"],
+            "description": "Initial lifecycle state of the run."
+          },
+          "initialEnvelope": {
+            "$ref": "#/components/schemas/AgentEnvelope"
+          }
+        }
+      },
+      "ActionResult": {
+        "type": "object",
+        "required": ["id"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identifier from the originating action envelope."
+          },
+          "output": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "error": {
+            "type": "string",
+            "description": "Optional failure description if the tool execution failed."
+          }
+        },
+        "oneOf": [
+          { "required": ["output"] },
+          { "required": ["error"] }
+        ]
+      }
+    }
+  }
+}
