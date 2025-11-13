@@ -1,0 +1,19 @@
+{
+  "prototype": "../msa-ma-prototype/demo_two_sessions.py",
+  "sessions": [
+    {
+      "session_id": "alpha",
+      "events": [
+        {"type": "think", "note": "alpha: plan"},
+        {"type": "tool_call", "tool": "sandbox", "args": {"script": "print('alpha')"}}
+      ]
+    },
+    {
+      "session_id": "beta",
+      "events": [
+        {"type": "think", "note": "beta: plan"},
+        {"type": "tool_call", "tool": "sandbox", "args": {"script": "print('beta')"}}
+      ]
+    }
+  ]
+}

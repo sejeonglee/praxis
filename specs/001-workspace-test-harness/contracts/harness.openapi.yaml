@@ -1,0 +1,145 @@
+openapi: 3.0.3
+info:
+  title: Workspace & Test Harness Control Plane
+  version: 0.1.0
+  description: >
+    Minimal control-plane contract that maps repository scripts to API-like
+    operations for automation and validation.
+servers:
+  - url: https://ci.local
+paths:
+  /workspace/sync:
+    post:
+      summary: Discover packages under /apps/* and /sdk/*
+      operationId: syncWorkspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                includeExamples:
+                  type: boolean
+                  default: true
+      responses:
+        "200":
+          description: Workspace manifest regenerated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceSyncResult'
+  /python/bootstrap:
+    post:
+      summary: Create or refresh the uv-managed virtual environment
+      operationId: bootstrapPython
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                upgrade:
+                  type: boolean
+                  default: false
+      responses:
+        "200":
+          description: Environment ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PythonBootstrapResult'
+  /tests/unit/run:
+    post:
+      summary: Run unit harness (TypeScript via pnpm vitest)
+      operationId: runUnitTests
+      requestBody:
+        required: false
+      responses:
+        "200":
+          description: Execution summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestRunSummary'
+  /tests/e2e/mock-run:
+    post:
+      summary: Run mock E2E harness (pytest)
+      operationId: runMockE2E
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scenario:
+                  type: string
+                  enum:
+                    - tool-feedback
+                    - concurrent-sessions
+                  description: Choose canonical scenario to execute
+                llmClient:
+                  type: string
+                  enum: [mock, openai]
+                  default: mock
+      responses:
+        "200":
+          description: Execution summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestRunSummary'
+
+components:
+  schemas:
+    WorkspaceSyncResult:
+      type: object
+      properties:
+        packagesDiscovered:
+          type: integer
+        apps:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkspacePackage'
+        sdks:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkspacePackage'
+    WorkspacePackage:
+      type: object
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
+          enum: [app, sdk]
+    PythonBootstrapResult:
+      type: object
+      properties:
+        pythonVersion:
+          type: string
+        lockChecksum:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    TestRunSummary:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [RED, GREEN]
+        suites:
+          type: integer
+        tests:
+          type: integer
+        durationMs:
+          type: integer
+        telemetryTraceId:
+          type: string
+        notes:
+          type: string

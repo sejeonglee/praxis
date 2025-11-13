@@ -1,0 +1,16 @@
+[project]
+name = "praxis-harness"
+version = "0.1.0"
+description = "Mock E2E harness for Praxis"
+authors = [{ name = "Praxis" }]
+requires-python = ">=3.14,<3.15"
+dependencies = [
+  "pytest>=7.4",
+  "anyio>=4.2",
+  "opentelemetry-sdk>=1.25",
+  "rich>=13.7"
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = "-q"
