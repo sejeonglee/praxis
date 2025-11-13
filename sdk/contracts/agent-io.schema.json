@@ -1,0 +1,177 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://praxis.dev/schemas/agent-io-envelope.json",
+  "title": "Praxis Agent Message Envelope",
+  "description": "Canonical envelope for streaming Praxis agent outputs and action requests.",
+  "type": "object",
+  "required": ["version", "id", "timestamp", "kind", "body"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the envelope schema.",
+      "pattern": "^1\\.0$"
+    },
+    "id": {
+      "type": "string",
+      "description": "Opaque identifier for correlating envelope fragments."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601 timestamp when the envelope was produced."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["progress", "action", "final"],
+      "description": "Envelope category indicating the shape of `body`."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional structured metadata shared across envelopes.",
+      "additionalProperties": {
+        "anyOf": [
+          { "type": "string" },
+          { "type": "number" },
+          { "type": "boolean" }
+        ]
+      }
+    },
+    "body": {
+      "type": "object",
+      "description": "Payload whose structure depends on `kind`."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "kind": { "const": "progress" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "type": "object",
+            "required": ["status", "message"],
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["pending", "running", "blocked", "complete"],
+                "description": "Lifecycle status of the agent run."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable summary of the progress update."
+              },
+              "progress": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Fractional completion indicator between 0 and 1."
+              },
+              "step": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Optional incremental step counter for display ordering."
+              },
+              "details": {
+                "type": "object",
+                "description": "Arbitrary structured data accompanying the update.",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "action" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "type": "object",
+            "required": ["name", "input"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Identifier that the caller MUST echo when fulfilling the action."
+              },
+              "name": {
+                "type": "string",
+                "description": "Action capability identifier requested by the agent."
+              },
+              "input": {
+                "description": "JSON-serialisable request parameters to the capability.",
+                "type": ["object", "array", "string", "number", "boolean", "null"]
+              },
+              "reason": {
+                "type": "string",
+                "description": "Rationale supplied by the agent for invoking the capability."
+              },
+              "expectReply": {
+                "type": "boolean",
+                "default": true,
+                "description": "Indicates whether the agent will wait for a follow-up envelope."
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "final" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "type": "object",
+            "required": ["outcome", "message"],
+            "additionalProperties": false,
+            "properties": {
+              "outcome": {
+                "type": "string",
+                "enum": ["success", "failure"],
+                "description": "Indicates whether the agent run completed successfully."
+              },
+              "message": {
+                "type": "string",
+                "description": "Primary answer or summary to surface to the end user."
+              },
+              "citations": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Optional list of citation identifiers referenced in the answer."
+              },
+              "data": {
+                "type": "object",
+                "description": "Structured machine-readable result payload.",
+                "additionalProperties": true
+              },
+              "error": {
+                "type": "string",
+                "description": "Detailed error message describing failure root cause."
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": { "outcome": { "const": "failure" } }
+                },
+                "then": {
+                  "required": ["error"]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
